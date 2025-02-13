@@ -1,11 +1,7 @@
 import { JSX } from 'react';
 
 const App: () => JSX.Element = (): JSX.Element => {
-  return (
-    <>
-
-    </>
-  )
-}
+    return <></>;
+};
 
 export default App;
