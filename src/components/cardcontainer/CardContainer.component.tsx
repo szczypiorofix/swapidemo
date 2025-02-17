@@ -14,8 +14,6 @@ import { EntitySelectionComponent as EntitySelection } from '../entity-selection
 import { useGlobalAppContext } from '../../storage/AppContext.ts';
 import { ENTITY_TYPE, PLAYER_SIDE } from '../../shared/enums';
 import {
-    AllPeopleResponse,
-    AllStarshipsResponse,
     ComparablePeopleProps,
     ComparableStarshipProps,
     PeopleOrStarshipOrNull,
@@ -64,7 +62,7 @@ export function CardContainerComponent(): JSX.Element {
     });
     const [warningSnackbarOpen, setWarningSnackbarOpen] = useState(false);
 
-    const handleClose = (
+    const handleSnackbarClose = (
         _: React.SyntheticEvent | Event,
         reason?: SnackbarCloseReason
     ) => {
@@ -84,107 +82,109 @@ export function CardContainerComponent(): JSX.Element {
         setEntitiesToCompare(defaultEntityToCompare);
     }
 
-    const sendRequest = () => {
+    function determinePlayersScore(playerWin: PLAYER_SIDE): [number, number] {
+        let playerLeftScore: number = players.playerLeftScore;
+        let playerRightScore: number = players.playerRightScore;
+
+        switch (playerWin) {
+            case PLAYER_SIDE.LEFT:
+                playerLeftScore++;
+                break;
+            case PLAYER_SIDE.RIGHT:
+                playerRightScore++;
+                break;
+            default:
+        }
+        return [playerLeftScore, playerRightScore];
+    }
+
+    function sendRequestForPeopleEntities(): void {
+        sendPairOfRequestsForPeople(contextState.maxPeopleEntities)
+            .then(([people1, people2]) => {
+                const playerWin: PLAYER_SIDE = determineTheWinnerByProperty<
+                    IPeople,
+                    keyof ComparablePeopleProps
+                >(
+                    people1,
+                    people2,
+                    contextState.selectedProperty as keyof ComparablePeopleProps
+                );
+
+                const [playerLeftScore, playerRightScore] =
+                    determinePlayersScore(playerWin);
+
+                setPlayers({
+                    ...players,
+                    playerWin: playerWin,
+                    playerLeftScore: playerLeftScore,
+                    playerRightScore: playerRightScore,
+                });
+
+                setLoadedEntity({
+                    ...contextState,
+                    loadedEntity: contextState.selectedEntity,
+                });
+                setEntitiesToCompare({
+                    entityLeft: people1,
+                    entityRight: people2,
+                });
+                setBackdrop(false);
+            })
+            .catch((error) => console.log(error));
+    }
+
+    function sendRequestForStarshipEntities(): void {
+        sendPairOfRequestsForStarships(contextState.maxStarshipEntities)
+            .then(([starship1, starship2]) => {
+                const playerWin: PLAYER_SIDE = determineTheWinnerByProperty<
+                    IStarship,
+                    keyof ComparableStarshipProps
+                >(
+                    starship1,
+                    starship2,
+                    contextState.selectedProperty as keyof ComparableStarshipProps
+                );
+
+                const [playerLeftScore, playerRightScore] =
+                    determinePlayersScore(playerWin);
+
+                setPlayers({
+                    ...players,
+                    playerWin: playerWin,
+                    playerLeftScore: playerLeftScore,
+                    playerRightScore: playerRightScore,
+                });
+
+                setLoadedEntity({
+                    ...contextState,
+                    loadedEntity: contextState.selectedEntity,
+                });
+                setEntitiesToCompare({
+                    entityLeft: starship1,
+                    entityRight: starship2,
+                });
+                setBackdrop(false);
+            })
+            .catch((error) => {
+                console.log(error);
+                setBackdrop(false);
+            });
+    }
+
+    function sendRequestForPairOfEntities() {
         switch (contextState.selectedEntity) {
             case ENTITY_TYPE.PEOPLE:
                 setBackdrop(true);
-                sendPairOfRequestsForPeople(contextState.maxPeopleEntities)
-                    .then(([people1, people2]) => {
-                        const playerWin: PLAYER_SIDE =
-                            determineTheWinnerByProperty<
-                                IPeople,
-                                keyof ComparablePeopleProps
-                            >(
-                                people1,
-                                people2,
-                                contextState.selectedProperty as keyof ComparablePeopleProps
-                            );
-
-                        let playerLeftScore: number = players.playerLeftScore;
-                        let playerRightScore: number = players.playerRightScore;
-
-                        switch (playerWin) {
-                            case PLAYER_SIDE.LEFT:
-                                playerLeftScore++;
-                                break;
-                            case PLAYER_SIDE.RIGHT:
-                                playerRightScore++;
-                                break;
-                            default:
-                        }
-
-                        setPlayers({
-                            ...players,
-                            playerWin: playerWin,
-                            playerLeftScore: playerLeftScore,
-                            playerRightScore: playerRightScore,
-                        });
-
-                        setLoadedEntity({
-                            ...contextState,
-                            loadedEntity: contextState.selectedEntity,
-                        });
-                        setEntitiesToCompare({
-                            entityLeft: people1,
-                            entityRight: people2,
-                        });
-                        setBackdrop(false);
-                    })
-                    .catch((error) => console.log(error));
+                sendRequestForPeopleEntities();
                 break;
             case ENTITY_TYPE.STARSHIPS:
                 setBackdrop(true);
-                sendPairOfRequestsForStarships(contextState.maxStarshipEntities)
-                    .then(([starship1, starship2]) => {
-                        const playerWin: PLAYER_SIDE =
-                            determineTheWinnerByProperty<
-                                IStarship,
-                                keyof ComparableStarshipProps
-                            >(
-                                starship1,
-                                starship2,
-                                contextState.selectedProperty as keyof ComparableStarshipProps
-                            );
-
-                        let playerLeftScore: number = players.playerLeftScore;
-                        let playerRightScore: number = players.playerRightScore;
-
-                        switch (playerWin) {
-                            case PLAYER_SIDE.LEFT:
-                                playerLeftScore++;
-                                break;
-                            case PLAYER_SIDE.RIGHT:
-                                playerRightScore++;
-                                break;
-                            default:
-                        }
-
-                        setPlayers({
-                            ...players,
-                            playerWin: playerWin,
-                            playerLeftScore: playerLeftScore,
-                            playerRightScore: playerRightScore,
-                        });
-
-                        setLoadedEntity({
-                            ...contextState,
-                            loadedEntity: contextState.selectedEntity,
-                        });
-                        setEntitiesToCompare({
-                            entityLeft: starship1,
-                            entityRight: starship2,
-                        });
-                        setBackdrop(false);
-                    })
-                    .catch((error) => {
-                        console.log(error);
-                        setBackdrop(false);
-                    });
+                sendRequestForStarshipEntities();
                 break;
             default:
                 setWarningSnackbarOpen(true);
         }
-    };
+    }
 
     useEffect(() => {
         if (contextState.selectedEntity !== ENTITY_TYPE.NONE) {
@@ -197,7 +197,7 @@ export function CardContainerComponent(): JSX.Element {
             contextState.maxPeopleEntities === 0 &&
             contextState.maxStarshipEntities === 0
         ) {
-            sendPairOfRequestsAll<AllPeopleResponse, AllStarshipsResponse>()
+            sendPairOfRequestsAll()
                 .then(([people, starships]) => {
                     setBackdrop(false);
                     setContextState({
@@ -230,14 +230,14 @@ export function CardContainerComponent(): JSX.Element {
                 anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
                 open={warningSnackbarOpen}
                 autoHideDuration={2000}
-                onClose={handleClose}
+                onClose={handleSnackbarClose}
                 message='Please select resource type first!'
             />
             <PropertySelection />
             <Box component='div' justifyContent='center' display='flex' p={2}>
                 <ButtonComponent
                     content={'Start !'}
-                    onClick={() => sendRequest()}
+                    onClick={() => sendRequestForPairOfEntities()}
                 ></ButtonComponent>
             </Box>
             <PlayersSection

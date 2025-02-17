@@ -1,5 +1,12 @@
 import { PLAYER_SIDE } from '../enums';
 
+/**
+ * Determine which player (Player Left, Player Right, or Neither) wins the comparison of the given properties.
+ * @param entity1 IPeople | IStarship: entity 1
+ * @param entity2 IPeople | IStarship: entity 2
+ * @param propertyToCompare keyof IPeople | keyof IStarship
+ * @return PLAYER_SIDE: return which player (on none) wins
+ */
 export function determineTheWinnerByProperty<T, V extends keyof T>(
     entity1: T,
     entity2: T,

@@ -1,4 +1,4 @@
-export * from './GetSelectedResourceWithId.ts';
+export * from './GetSelectedResourceBaseUrlWithId.ts';
 export * from './GetSelectedResourceBaseUrl.ts';
 export * from './GetRandomPositiveNumber.ts';
 export * from './SendPairOfRequests.ts';

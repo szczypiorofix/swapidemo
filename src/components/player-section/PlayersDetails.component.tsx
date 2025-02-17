@@ -57,7 +57,7 @@ export function PlayerDetailsComponent(props: PlayerDetailsProps): JSX.Element {
                         mt: 2,
                     }}
                 >
-                    SCORE: <span>{props.score}</span>
+                    SCORE: <span role={'player-score'}>{props.score}</span>
                 </Typography>
                 {props.entity && (
                     <EntityDetailsComponent

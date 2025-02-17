@@ -1,21 +1,33 @@
 import { getSelectedResourceBaseUrl } from './GetSelectedResourceBaseUrl.ts';
 import { ENTITY_TYPE } from '../enums';
 import { IPeople, IStarship } from 'swapi-ts';
-import { getSelectedResourceWithId } from './GetSelectedResourceWithId.ts';
+import { getSelectedResourceBaseUrlWithId } from './GetSelectedResourceBaseUrlWithId.ts';
 import { getRandomPositiveNumber } from './GetRandomPositiveNumber.ts';
+import { AllPeopleResponse, AllStarshipsResponse } from '../models';
 
-export async function sendPairOfRequestsAll<T, V>(): Promise<[T, V]> {
-    const response1: Response = await fetch(
+/**
+ * Send two request for AllPeopleResponse and AllStarshipsResponse data type/ (oly first page).
+ * Mainly for getting max results.
+ */
+export async function sendPairOfRequestsAll(): Promise<
+    [AllPeopleResponse, AllStarshipsResponse]
+> {
+    const responseTypeT: Response = await fetch(
         getSelectedResourceBaseUrl(ENTITY_TYPE.PEOPLE)
     );
-    const data1: T = await response1.json();
-    const response2: Response = await fetch(
+    const dataTypeT: AllPeopleResponse = await responseTypeT.json();
+    const responseTypeV: Response = await fetch(
         getSelectedResourceBaseUrl(ENTITY_TYPE.STARSHIPS)
     );
-    const data2: V = await response2.json();
-    return [data1, data2];
+    const dataTypeV: AllStarshipsResponse = await responseTypeV.json();
+    return [dataTypeT, dataTypeV];
 }
 
+/**
+ * Send two request for IPeople resource type.
+ * @param max number: max number of available resources (for generating random number, below this value and greater than 0)
+ * @return Promise<IPeople[]>: returns Promise with two resources of type IPeople
+ */
 export async function sendPairOfRequestsForPeople(
     max: number
 ): Promise<IPeople[]> {
@@ -30,7 +42,7 @@ export async function sendPairOfRequestsForPeople(
         }
         try {
             const response: Response = await fetch(
-                getSelectedResourceWithId(ENTITY_TYPE.PEOPLE, randomId)
+                getSelectedResourceBaseUrlWithId(ENTITY_TYPE.PEOPLE, randomId)
             );
 
             lastId = randomId;
@@ -52,6 +64,11 @@ export async function sendPairOfRequestsForPeople(
     return people;
 }
 
+/**
+ * Send two request for IStarship resource type.
+ * @param max number: max number of available resources (for generating random number, below this value and greater than 0)
+ * @return Promise<IStarship[]>: returns Promise with two resources of type IStarship
+ */
 export async function sendPairOfRequestsForStarships(
     max: number
 ): Promise<IStarship[]> {
@@ -61,7 +78,10 @@ export async function sendPairOfRequestsForStarships(
         const randomId = getRandomPositiveNumber(max);
         try {
             const response: Response = await fetch(
-                getSelectedResourceWithId(ENTITY_TYPE.STARSHIPS, randomId)
+                getSelectedResourceBaseUrlWithId(
+                    ENTITY_TYPE.STARSHIPS,
+                    randomId
+                )
             );
             if (!response.ok) {
                 if (response.status === 404) {
